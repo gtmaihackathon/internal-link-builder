@@ -1,5 +1,4 @@
 """
-Configuration module for Internal Link Builder
+Test suite for Internal Link Builder
+Run with: pytest tests/ -v
 """
-from .settings import *
-from .user_agents import get_user_agent, get_headers, list_user_agents, USER_AGENTS
