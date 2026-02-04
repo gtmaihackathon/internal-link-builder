@@ -1,1 +1,47 @@
+version: '3.8'
 
+services:
+  internal-link-builder:
+    build: .
+    container_name: internal-link-builder
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./data:/app/data
+      - ./exports:/app/exports
+    environment:
+      - STREAMLIT_SERVER_PORT=8501
+      - STREAMLIT_SERVER_ADDRESS=0.0.0.0
+      - STREAMLIT_SERVER_HEADLESS=true
+      - STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Optional: PostgreSQL for large-scale deployments
+  # postgres:
+  #   image: postgres:15-alpine
+  #   container_name: ilb-postgres
+  #   environment:
+  #     POSTGRES_USER: ilb_user
+  #     POSTGRES_PASSWORD: ilb_password
+  #     POSTGRES_DB: internal_links
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+  #   restart: unless-stopped
+
+  # Optional: Redis for caching and task queuing
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: ilb-redis
+  #   ports:
+  #     - "6379:6379"
+  #   restart: unless-stopped
+
+volumes:
+  postgres_data:
