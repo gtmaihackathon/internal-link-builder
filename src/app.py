@@ -1350,7 +1350,7 @@ Provide brief: 1) Best anchor text, 2) Why link these pages (1 sentence)"""
                         st.markdown(f"**Source:** [{s_dict['source_url']}]({s_dict['source_url']})")
                         st.markdown(f"**Target:** [{s_dict['target_url']}]({s_dict['target_url']})")
                         st.markdown(f"**Suggested Anchor:** `{s_dict['suggested_anchor']}`")
-                        st.markdown(f"**Relevance Score:** {float(s_dict.get('relevance_score') or 0):.3f}")
+                        st.markdown(f"**Relevance Score:** {safe_score_format(s_dict.get('relevance_score'))}")
                         
                         if s_dict['ai_explanation']:
                             st.markdown("**AI Explanation:**")
