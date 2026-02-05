@@ -27,6 +27,11 @@ def safe_score_format(value, decimals=3):
         return f"{float(value):.{decimals}f}"
     except (ValueError, TypeError):
         return "N/A"
+
+def safe_get(dictionary, key, default=''):
+    """Safely get a value from a dictionary, handling None values."""
+    value = dictionary.get(key, default)
+    return value if value is not None else default
         
 # Page config - MUST be first Streamlit command
 st.set_page_config(
@@ -1350,35 +1355,44 @@ Provide brief: 1) Best anchor text, 2) Why link these pages (1 sentence)"""
             for s in suggestions:
                 s_dict = dict(s)
                 
-                priority_icon = {'high': '🔴', 'medium': '🟡', 'low': '🟢'}.get(s_dict['priority'], '⚪')
+                # Safe priority icon lookup - handle None values
+                priority_value = s_dict.get('priority') or ''
+                priority_icon = {'high': '🔴', 'medium': '🟡', 'low': '🟢'}.get(priority_value, '⚪')
                 
-                with st.expander(f"{priority_icon} {s_dict['source_url'][:40]}... → {s_dict['target_url'][:40]}..."):
+                # Safe URL display
+                source_url = s_dict.get('source_url') or ''
+                target_url = s_dict.get('target_url') or ''
+                
+                with st.expander(f"{priority_icon} {source_url[:40]}... → {target_url[:40]}..."):
                     col1, col2 = st.columns([3, 1])
                     
                     with col1:
-                        st.markdown(f"**Source:** [{s_dict['source_url']}]({s_dict['source_url']})")
-                        st.markdown(f"**Target:** [{s_dict['target_url']}]({s_dict['target_url']})")
-                        st.markdown(f"**Suggested Anchor:** `{s_dict['suggested_anchor']}`")
+                        st.markdown(f"**Source:** [{source_url}]({source_url})")
+                        st.markdown(f"**Target:** [{target_url}]({target_url})")
+                        st.markdown(f"**Suggested Anchor:** `{s_dict.get('suggested_anchor') or 'N/A'}`")
                         st.markdown(f"**Relevance Score:** {safe_score_format(s_dict.get('relevance_score'))}")
                         
-                        if s_dict['ai_explanation']:
+                        if s_dict.get('ai_explanation'):
                             st.markdown("**AI Explanation:**")
                             st.info(s_dict['ai_explanation'])
                     
                     with col2:
-                        st.markdown(f"**Priority:** {s_dict['priority'].upper()}")
-                        st.markdown(f"**Status:** {s_dict['status']}")
+                        priority_display = (s_dict.get('priority') or 'N/A').upper()
+                        st.markdown(f"**Priority:** {priority_display}")
+                        st.markdown(f"**Status:** {s_dict.get('status') or 'N/A'}")
                         
-                        if s_dict['status'] == 'pending':
-                            if st.button("✅ Approve", key=f"approve_{s_dict['id']}"):
-                                cursor.execute('UPDATE suggestions SET status = ? WHERE id = ?', ('approved', s_dict['id']))
-                                conn.commit()
-                                st.rerun()
-                            
-                            if st.button("❌ Reject", key=f"reject_{s_dict['id']}"):
-                                cursor.execute('UPDATE suggestions SET status = ? WHERE id = ?', ('rejected', s_dict['id']))
-                                conn.commit()
-                                st.rerun()
+                        if s_dict.get('status') == 'pending':
+                            suggestion_id = s_dict.get('id')
+                            if suggestion_id:
+                                if st.button("✅ Approve", key=f"approve_{suggestion_id}"):
+                                    cursor.execute('UPDATE suggestions SET status = ? WHERE id = ?', ('approved', suggestion_id))
+                                    conn.commit()
+                                    st.rerun()
+                                
+                                if st.button("❌ Reject", key=f"reject_{suggestion_id}"):
+                                    cursor.execute('UPDATE suggestions SET status = ? WHERE id = ?', ('rejected', suggestion_id))
+                                    conn.commit()
+                                    st.rerun()
             
             # Export
             st.divider()
