@@ -19,6 +19,15 @@ import json
 import re
 import os
 
+def safe_score_format(value, decimals=3):
+    """Safely format a score value, returning 'N/A' if invalid."""
+    try:
+        if value is None or value == '' or value == 'None':
+            return "N/A"
+        return f"{float(value):.{decimals}f}"
+    except (ValueError, TypeError):
+        return "N/A"
+        
 # Page config - MUST be first Streamlit command
 st.set_page_config(
     page_title="Internal Link Builder - AI Powered",
